@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>911 Emergency Calls - Montgomery County, PA</title>
+    <!-- Use Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <!-- D3.js v7 and TopoJSON -->
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <script src="https://unpkg.com/topojson-client@3"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div id="container">
+        <header>
+            <h1>Montgomery County 911 Calls</h1>
+            <p class="subtitle">Interactive exploration of 10,000 recent emergency calls</p>
+
+            <div class="controls">
+                <div class="filter-group">
+                    <h3>Filter by Category</h3>
+                    <div class="checkbox-container">
+                        <label class="category-label ems">
+                            <input type="checkbox" value="EMS" checked> EMS
+                            <span class="checkmark"></span>
+                        </label>
+                        <label class="category-label traffic">
+                            <input type="checkbox" value="Traffic" checked> Traffic
+                            <span class="checkmark"></span>
+                        </label>
+                        <label class="category-label fire">
+                            <input type="checkbox" value="Fire" checked> Fire
+                            <span class="checkmark"></span>
+                        </label>
+                        <label class="category-label other">
+                            <input type="checkbox" value="Other" checked> Other
+                            <span class="checkmark"></span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="instructions">
+                    <p><strong>Scroll</strong> to zoom, <strong>Drag</strong> to pan.</p>
+                    <p><strong>Hover</strong> over a point for details.</p>
+                </div>
+            </div>
+        </header>
+
+        <main>
+            <div id="loading">
+                <div class="spinner"></div>
+                <p>Loading 911 data...</p>
+            </div>
+            <div id="map-container">
+                <!-- SVG injected via D3 -->
+            </div>
+        </main>
+    </div>
+
+    <!-- Tooltip -->
+    <div id="tooltip" class="hidden">
+        <div id="tt-category" class="tag"></div>
+        <div id="tt-title" class="title"></div>
+        <div class="details">
+            <p><strong>Time:</strong> <span id="tt-time"></span></p>
+            <p><strong>Township:</strong> <span id="tt-twp"></span></p>
+            <p><strong>Zip:</strong> <span id="tt-zip"></span></p>
+        </div>
+    </div>
+
+    <script src="main.js"></script>
+</body>
+
+</html>
