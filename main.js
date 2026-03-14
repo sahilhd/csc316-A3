@@ -12,7 +12,7 @@ const svg = container.append("svg")
 svg.append("rect")
     .attr("width", width)
     .attr("height", height)
-    .attr("fill", "var(--bg-color)");
+    .attr("fill", themes.night.bg);
 
 // The main group
 const g = svg.append("g");
@@ -55,6 +55,28 @@ const path = d3.geoPath().projection(projection);
 // Base radius size for dots
 const baseRadius = 2.0;
 
+// Theme state
+let isDayMode = false;
+
+const themes = {
+    night: {
+        water: "#0f1419",
+        land: "#22272e",
+        bg: "#1a1e24",
+        graticuleOpacity: 0.3,
+        icon: "☀️",
+        label: "Day"
+    },
+    day: {
+        water: "#b3d9f5",
+        land: "#c8e6c9",
+        bg: "#e8f4f8",
+        graticuleOpacity: 0.2,
+        icon: "🌙",
+        label: "Night"
+    }
+};
+
 // Render layers
 const renderGlobe = g.append("g").attr("class", "globe-layer");
 const renderPoints = g.append("g").attr("class", "points-layer");
@@ -73,7 +95,7 @@ Promise.all([
         .datum({ type: "Sphere" })
         .attr("class", "water")
         .attr("d", path)
-        .attr("fill", "#0f1419")
+        .attr("fill", themes.night.water)
         .attr("stroke", "var(--border)")
         .attr("stroke-width", 1);
 
@@ -95,7 +117,7 @@ Promise.all([
         .enter().append("path")
         .attr("class", "country")
         .attr("d", path)
-        .attr("fill", "#22272e") // slightly lighter than ocean
+        .attr("fill", themes.night.land)
         .attr("stroke", "var(--border)")
         .attr("stroke-width", 0.5);
 
@@ -152,7 +174,31 @@ Promise.all([
     }
     updateGlobe();
 
-    // 5. Drag behavior for spinning the globe
+    // 5. Day/Night Theme Toggle
+    function applyTheme(t) {
+        renderGlobe.select(".water")
+            .transition().duration(600)
+            .attr("fill", t.water);
+        renderGlobe.selectAll(".country")
+            .transition().duration(600)
+            .attr("fill", t.land);
+        renderGlobe.select(".graticule")
+            .transition().duration(600)
+            .attr("stroke-opacity", t.graticuleOpacity);
+        svg.select("rect")
+            .transition().duration(600)
+            .attr("fill", t.bg);
+        document.getElementById("theme-icon").textContent = t.icon;
+        document.getElementById("theme-label").textContent = t.label;
+    }
+
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        isDayMode = !isDayMode;
+        document.body.classList.toggle("day-mode", isDayMode);
+        applyTheme(isDayMode ? themes.day : themes.night);
+    });
+
+    // 7. Drag behavior for spinning the globe
     let v0, r0, q0;
 
     // Custom drag handler using quaternions for smooth multi-axis rotation
@@ -173,7 +219,7 @@ Promise.all([
 
     svg.call(drag);
 
-    // 6. Zoom behavior
+    // 8. Zoom behavior
     const zoom = d3.zoom()
         .scaleExtent([0.5, 20])
         .on("zoom", (event) => {
