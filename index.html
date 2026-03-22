@@ -4,46 +4,37 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>911 Emergency Calls - Montgomery County, PA</title>
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <title>911 Pulse - North America Regional Story</title>
     <!-- Use Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
-    <!-- D3.js v7 and TopoJSON -->
+    <!-- D3.js v7 + TopoJSON -->
     <script src="https://d3js.org/d3.v7.min.js"></script>
     <script src="https://unpkg.com/topojson-client@3"></script>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css?v=regional-v5">
 </head>
 
 <body>
     <div id="container">
         <header>
-            <h1>Montgomery County 911 Calls</h1>
-            <p class="subtitle">1,200 emergency calls — Montgomery County, PA &amp; worldwide</p>
+            <h1>North America 911 Pulse</h1>
+            <p class="subtitle">Aggregate emergency activity by state and province</p>
 
             <div class="controls">
                 <div class="filter-group">
-                    <h3>Filter by Category</h3>
-                    <div class="checkbox-container">
-                        <label class="category-label ems">
-                            <input type="checkbox" value="EMS" checked> EMS
-                            <span class="checkmark"></span>
-                        </label>
-                        <label class="category-label traffic">
-                            <input type="checkbox" value="Traffic" checked> Traffic
-                            <span class="checkmark"></span>
-                        </label>
-                        <label class="category-label fire">
-                            <input type="checkbox" value="Fire" checked> Fire
-                            <span class="checkmark"></span>
-                        </label>
-                        <label class="category-label other">
-                            <input type="checkbox" value="Other" checked> Other
-                            <span class="checkmark"></span>
-                        </label>
+                    <h3>Most Common Emergency</h3>
+                    <div class="legend-row">
+                        <span class="legend-item"><span class="swatch ems"></span>EMS</span>
+                        <span class="legend-item"><span class="swatch traffic"></span>Traffic</span>
+                        <span class="legend-item"><span class="swatch fire"></span>Fire</span>
+                        <span class="legend-item"><span class="swatch other"></span>Other</span>
                     </div>
                 </div>
 
                 <div class="theme-group">
-                    <h3>Globe Theme</h3>
+                    <h3>Theme</h3>
                     <button id="theme-toggle" class="theme-btn" aria-label="Toggle day/night theme">
                         <span id="theme-icon">☀️</span>
                         <span id="theme-label">Day</span>
@@ -52,7 +43,7 @@
 
                 <div class="instructions">
                     <p><strong>Scroll</strong> to zoom, <strong>Drag</strong> to rotate.</p>
-                    <p><strong>Hover</strong> over a point for details.</p>
+                    <p><strong>Hover</strong> a region to inspect the report.</p>
                 </div>
             </div>
         </header>
@@ -65,9 +56,39 @@
             <div id="map-container">
                 <!-- SVG injected via D3 -->
             </div>
+            <aside id="story-panel">
+                <h2>Regional Story Lens</h2>
+                <p id="story-caption">North America-wide emergency pressure by jurisdiction.</p>
+                <div class="timeline-controls">
+                    <button id="play-story" class="story-btn">Play Story</button>
+                    <button id="pause-story" class="story-btn ghost">Pause</button>
+                    <input id="month-slider" type="range" min="0" max="11" value="0" step="1">
+                    <span id="month-label">January</span>
+                </div>
+                <div class="chapter-row">
+                    <button class="chapter-btn active" data-month="0">Winter Stress</button>
+                    <button class="chapter-btn" data-month="5">Summer Mobility</button>
+                    <button class="chapter-btn" data-month="9">Storm Season</button>
+                </div>
+                <div class="kpi-row">
+                    <div class="kpi-card">
+                        <div class="kpi-title">Calls This Month</div>
+                        <div id="kpi-total-calls" class="kpi-value">0</div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-title">Top Region</div>
+                        <div id="kpi-top-region" class="kpi-value">-</div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-title">Dominant Type</div>
+                        <div id="kpi-dominant" class="kpi-value">-</div>
+                    </div>
+                </div>
+                <svg id="category-bars" width="320" height="120"></svg>
+            </aside>
             <div id="attribution">
-                Data: <a href="https://www.kaggle.com/datasets/mchirico/montcoalert" target="_blank" rel="noopener">Montgomery County 911 Calls</a> via Kaggle &nbsp;·&nbsp;
-                Map: <a href="https://www.naturalearthdata.com/" target="_blank" rel="noopener">Natural Earth</a> &nbsp;·&nbsp;
+                Regions: US States + Canadian Provinces + Mexico States (GeoJSON) &nbsp;·&nbsp;
+                Data: <a href="https://www.kaggle.com/datasets/mchirico/montcoalert" target="_blank" rel="noopener">Montgomery County 911 Calls (Kaggle)</a> with regional aggregation &nbsp;·&nbsp;
                 Built with <a href="https://d3js.org/" target="_blank" rel="noopener">D3.js v7</a>
             </div>
         </main>
@@ -78,13 +99,20 @@
         <div id="tt-category" class="tag"></div>
         <div id="tt-title" class="title"></div>
         <div class="details">
-            <p><strong>Time:</strong> <span id="tt-time"></span></p>
-            <p><strong>Township:</strong> <span id="tt-twp"></span></p>
-            <p><strong>Zip:</strong> <span id="tt-zip"></span></p>
+            <p><strong>Total Calls:</strong> <span id="tt-total"></span></p>
+            <p><strong>EMS / Traffic / Fire:</strong> <span id="tt-breakdown"></span></p>
+            <p><strong>Risk Index:</strong> <span id="tt-risk"></span></p>
+        </div>
+        <div class="story-report">
+            <h4>Top Story Report</h4>
+            <p id="tt-report-title"></p>
+            <p><strong>When:</strong> <span id="tt-report-time"></span></p>
+            <p><strong>Where:</strong> <span id="tt-report-location"></span></p>
+            <p><strong>Dispatch:</strong> <span id="tt-report-note"></span></p>
         </div>
     </div>
 
-    <script src="main.js"></script>
+    <script src="main.js?v=regional-v5"></script>
 </body>
 
 </html>
